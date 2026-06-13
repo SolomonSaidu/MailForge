@@ -21,6 +21,7 @@ MailForge is a developer-first transactional email API service built for reliabi
 ## 🏁 Getting Started
 
 ### Prerequisites
+
 - Node.js (v18+)
 - PostgreSQL
 - A Resend API Key
@@ -28,18 +29,21 @@ MailForge is a developer-first transactional email API service built for reliabi
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/SolomonSaidu/MailForge.git
    cd MailForge
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Environment Setup**
    Create a `.env` file in the root:
+
    ```env
    PORT=3000
    DATABASE_URL="postgresql://user:password@localhost:5432/mailforge_db"
@@ -48,6 +52,7 @@ MailForge is a developer-first transactional email API service built for reliabi
    ```
 
 4. **Database Migration**
+
    ```bash
    npx prisma migrate dev --name init
    ```
@@ -60,26 +65,32 @@ MailForge is a developer-first transactional email API service built for reliabi
 ## 📡 API Reference
 
 ### Authentication (User)
+
 - `POST /api/v1/auth/register` - Create a new account
 - `POST /api/v1/auth/login` - Get a JWT token
 - `GET /api/v1/auth/me` - Get current user profile (Requires JWT)
 
 ### API Keys
+
 - `POST /api/v1/keys` - Create a new API key (Requires JWT)
 - `GET /api/v1/keys` - List all keys (Requires JWT)
 - `DELETE /api/v1/keys/:id` - Revoke a key (Requires JWT)
 
 ### Email Service
+
 - `POST /api/v1/emails/send` - Send an email (Requires `x-api-key` header)
 - `GET /api/v1/emails/logs` - View email history (Requires JWT)
 
 ### Analytics
+
 - `GET /api/v1/analytics/dashboard` - View usage stats (Requires JWT)
 
 ## 🔒 Security
+
 - Passwords are salted and hashed using **Bcrypt**.
 - API Keys are stored as **SHA-256** hashes.
 - Route protection is enforced via custom middleware.
 
 ## 📄 License
+
 ISC
