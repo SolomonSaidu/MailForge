@@ -51,3 +51,62 @@ export const protect = async (req, res, next) => {
     res.status(401).json({ message: "Not authorized, no token" });
   }
 };
+
+/**
+ * Middleware to authenticate service requests using an API Key.
+ * 
+ * Logic:
+ * 1. Extract the key from the 'x-api-key' header.
+ * 2. Hash the provided key using SHA-256 (to match our stored hashes).
+ * 3. Look up the hash in the ApiKey table.
+ * 4. Attach the key owner (user) to req.user for use in the controller.
+ */
+import crypto from "crypto";
+
+export const serviceAuth = async (req, res, next) => {
+  const apiKey = req.headers["x-api-key"];
+
+  if (!apiKey) {
+    return res.status(401).json({
+      success: false,
+      message: "Authentication failed: No API Key provided in 'x-api-key' header.",
+    });
+  }
+
+  try {
+    // 1. Hash the incoming key to compare with the stored hash
+    const keyHash = crypto.createHash("sha256").update(apiKey).digest("hex");
+
+    // 2. Find the key in the database
+    const keyRecord = await prisma.apiKey.findFirst({
+      where: {
+        keyHash: keyHash,
+        revoked: false,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!keyRecord) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication failed: Invalid or revoked API Key.",
+      });
+    }
+
+    // 3. Attach the user and key info to the request
+    req.user = keyRecord.user;
+    req.apiKeyId = keyRecord.id;
+
+    next();
+  } catch (error) {
+    console.error("Service Auth Error:", error.message);
+    res.status(500).json({ success: false, message: "Internal server error during authentication" });
+  }
+};
