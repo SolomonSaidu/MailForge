@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import prisma from "../config/db.js";
+import { ApiError } from "../middleware/error.middleware.js";
 
 /**
  * Generates a secure, random API key with a prefix.
@@ -61,11 +62,18 @@ export const listUserKeys = async (userId) => {
  * Revokes an API key so it can no longer be used.
  */
 export const revokeKey = async (userId, keyId) => {
-  return await prisma.apiKey.update({
-    where: { 
-      id: keyId,
-      userId // Security: Ensure the user owns the key they are revoking
-    },
-    data: { revoked: true },
-  });
+  try {
+    return await prisma.apiKey.update({
+      where: { 
+        id: keyId,
+        userId // Security: Ensure the user owns the key they are revoking
+      },
+      data: { revoked: true },
+    });
+  } catch (error) {
+    if (error.code === "P2025") {
+      throw new ApiError("API Key not found or unauthorized", 404);
+    }
+    throw error;
+  }
 };

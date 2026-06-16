@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import prisma from "../config/db.js";
+import { ApiError } from "../middleware/error.middleware.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -10,7 +11,7 @@ export const register = async (email, password) => {
   });
 
   if (existingUser) {
-    throw new Error("User already exists");
+    throw new ApiError("User already exists", 400);
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -31,13 +32,13 @@ export const login = async (email, password) => {
   });
 
   if (!user) {
-    throw new Error("Invalid credentials");
+    throw new ApiError("Invalid credentials", 401);
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
   if (!isPasswordValid) {
-    throw new Error("Invalid credentials");
+    throw new ApiError("Invalid credentials", 401);
   }
 
   const token = jwt.sign({ userId: user.id }, JWT_SECRET, {

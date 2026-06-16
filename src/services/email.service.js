@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import prisma from "../config/db.js";
+import { ApiError } from "../middleware/error.middleware.js";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -10,7 +11,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
  * @param {string} userId - The ID of the user sending the email
  * @param {string} apiKeyId - The ID of the API key used
  */
-export const sendEmail = async ({ to, subject, html, text }, userId, apiKeyId) => {
+export const sendEmail = async ({ from, to, subject, html, text }, userId, apiKeyId) => {
   try {
     // 1. Send the email via Resend
     const { data, error } = await resend.emails.send({
@@ -21,7 +22,7 @@ export const sendEmail = async ({ to, subject, html, text }, userId, apiKeyId) =
     });
 
     if (error) {
-      throw new Error(`Resend Error: ${error.message}`);
+      throw new ApiError(`Resend Error: ${error.message}`, 400);
     }
 
     // 2. Log the email in the database
@@ -48,7 +49,11 @@ export const sendEmail = async ({ to, subject, html, text }, userId, apiKeyId) =
       },
     });
     
-    throw error;
+    // If it's already an ApiError, rethrow it
+    if (error instanceof ApiError) throw error;
+    
+    // Otherwise wrap it
+    throw new ApiError(error.message, 500);
   }
 };
 
