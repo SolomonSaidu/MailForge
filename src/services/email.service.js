@@ -42,6 +42,7 @@ export const sendEmail = async ({ from, to, subject, html, text }, userId, apiKe
     // Log failed attempts too
     await prisma.emailLog.create({
       data: {
+        from: from || "onboarding@resend.dev",
         to,
         subject,
         status: "failed",

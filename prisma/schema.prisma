@@ -28,6 +28,7 @@ model ApiKey {
 
 model EmailLog {
   id         String   @id @default(cuid())
+  from       String?
   to         String
   subject    String
   status     String   // "sent" | "failed"
